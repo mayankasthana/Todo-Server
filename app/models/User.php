@@ -18,6 +18,6 @@ class User extends Eloquent {
         
 	public function tasks()
 	{
-		return $this->belongsToMany('User');
+		return $this->belongsToMany('Task');
 	}
 }
