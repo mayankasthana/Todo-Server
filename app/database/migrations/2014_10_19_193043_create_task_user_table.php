@@ -9,8 +9,6 @@ class CreateTaskUserTable extends Migration {
 	{
 		Schema::create('task_user', function(Blueprint $table) {
 			$table->bigIncrements('id');
-			$table->timestamps();
-			$table->softDeletes();
 			$table->bigInteger('task_id')->unsigned()->index();
 			$table->bigInteger('user_id')->unsigned()->index();
 		});
