@@ -26,7 +26,16 @@ return array(
 	|
 	*/
 
-	'url' => 'http://localhost',
+        'url' => call_user_func(function(){
+            if(getenv('COMPUTERNAME')=="BHEL-THINK")
+                {
+                return 'http://localhost:8000/public';
+                }
+            else{
+                return 'http://localhost';
+            }
+                })
+                ,
 
 	/*
 	|--------------------------------------------------------------------------
