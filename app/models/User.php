@@ -15,5 +15,9 @@ class User extends Eloquent {
 	{
 		return $this->hasMany('Login_attempts');
 	}
-
+        
+	public function tasks()
+	{
+		return $this->belongsToMany('User');
+	}
 }
