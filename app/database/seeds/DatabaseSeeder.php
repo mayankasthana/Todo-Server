@@ -33,7 +33,13 @@ class DatabaseSeeder extends Seeder {
             $user->save();
             $user->role()->attach($memberRole);
 
-            
+            $task = new Task;
+            $task->text = "New seed task";
+            $task->status = "Done";
+            $task->priority = 1;
+            $task->creator()->associate($user);
+            $task->save();
+
 		Eloquent::unguard();
 	}
 }
