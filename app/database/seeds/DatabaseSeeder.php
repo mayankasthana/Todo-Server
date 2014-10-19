@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder {
             $memberRole->save();
             
             $user = new User;
+            $mayank = $user;
             $user->username = "Mayank";
             $user->email = "mayankasthana1993@gmail.com";
             $user->password = "asdfjkl;";
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder {
             $user->role()->attach($adminRole);
             
             $user = new User;
+            $shivam = $user;
             $user->username = "Shivam";
             $user->email = "shivam@kratee.com";
             $user->password = ";lkjfdsa";
@@ -39,7 +41,9 @@ class DatabaseSeeder extends Seeder {
             $task->priority = 1;
             $task->creator()->associate($user);
             $task->save();
-
+            $task->users()->saveMany(array($shivam,$mayank));
+            
+            
 		Eloquent::unguard();
 	}
 }
