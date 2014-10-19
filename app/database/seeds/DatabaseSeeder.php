@@ -38,12 +38,11 @@ class DatabaseSeeder extends Seeder {
             $task = new Task;
             $task->text = "New seed task";
             $task->status = "Done";
-            $task->priority = 1;
             $task->creator()->associate($user);
             $task->save();
             $task->users()->saveMany(array($shivam,$mayank));
             
-            
+          
 		Eloquent::unguard();
 	}
 }

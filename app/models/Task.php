@@ -21,5 +21,9 @@ class Task extends Eloquent {
 	{
 		return $this->belongsTo('User', 'created_by_user_id');
 	}
-
+        
+        public function priority()
+	{
+		return $this->hasOne('Task_priority', 'task_id');
+	}
 }
