@@ -12,6 +12,7 @@
  */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE');
 Route::get('/', function() {
     return View::make('hello');
 });
@@ -55,5 +56,12 @@ Route::any('api/task', function() {
 Route::get('api/task/{id}/users', function($id) {
     $task = Task::findOrFail($id);
     return Response::json($task->users);
+});
+
+Route::delete('api/task/{taskId}',function($taskId){
+    $task = Task::findOrFail($taskId);
+    $task->delete();
+    //Todo remove the priority
+    return 'done';
 });
 
