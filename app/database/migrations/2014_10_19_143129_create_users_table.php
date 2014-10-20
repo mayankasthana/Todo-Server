@@ -13,6 +13,8 @@ class CreateUsersTable extends Migration {
 			$table->string('username', 30);
 			$table->string('email', 100);
 			$table->string('password', 100);
+                        $table->string('firstname',40);
+                        $table->string('lastname',40);
 			$table->string('salt', 30);
 			$table->string('register_ip', 15);
 			$table->string('forget_token', 100)->nullable();
