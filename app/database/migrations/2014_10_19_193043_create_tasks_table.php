@@ -13,7 +13,7 @@ class CreateTasksTable extends Migration {
 			$table->softDeletes();
 			$table->bigInteger('created_by_user_id')->unsigned();
 			$table->text('text');
-			$table->string('status', 20)->nullable();
+			$table->boolean('status');
 		});
 	}
 
