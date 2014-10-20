@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder {
             $user->role()->attach($memberRole);
 
             $user = new User;
+            $mihir = $user;
             $user->username = "Mihir";
             $user->email = "mihir@gmail.com";
             $user->password = "password";
@@ -41,8 +42,13 @@ class DatabaseSeeder extends Seeder {
             $task->creator()->associate($user);
             $task->save();
             $task->users()->saveMany(array($shivam,$mayank));
-            
-          
+  
+  
+            $task = new Task;
+            $task->text = "Second Task";
+            $task->creator()->associate($mayank);
+            $task->save();
+            $task->users()->saveMany(array($mayank,$mihir));
 		Eloquent::unguard();
 	}
 }
