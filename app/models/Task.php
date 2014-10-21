@@ -28,8 +28,8 @@ class Task extends Eloquent {
         //$allTasks = parent::all($columns);
         return DB::table('tasks')
                         ->leftjoin('task_priority', "tasks.id", '=', 'task_priority.task_id')
-                ->whereNull('deleted_at')        
-                ->select($columns)
+                        ->whereNull('deleted_at')
+                        ->select($columns)
                         ->get();
     }
 
@@ -49,12 +49,14 @@ class Task extends Eloquent {
         $savedPriority = Task::savePriority($this->id);
         $this->priority = $savedPriority;
     }
-        public function delete(){
-            parent::delete();
-            Task::deletePriority($this->id);
-        }
 
-        static function deletePriority($taskId){
-            DB::table('task_priority')->where('task_id', '=', $taskId)->delete();
-        }
+    public function delete() {
+        parent::delete();
+        Task::deletePriority($this->id);
+    }
+
+    static function deletePriority($taskId) {
+        DB::table('task_priority')->where('task_id', '=', $taskId)->delete();
+    }
+
 }
