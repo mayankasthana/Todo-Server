@@ -20,7 +20,7 @@ Route::get('api/tasks', function() {
     $headers = [
             // 'Access-Control-Allow-Origin'      => '*',
     ];
-    $tasks = Task::all(array('id', 'text', 'updated_at', 'created_by_user_id as authorId', 'status', 'priority'));
+    $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'priority'));
     //$tasks = Task::all();
     return Response::json($tasks, 200, $headers);
 });
