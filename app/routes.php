@@ -55,7 +55,11 @@ Route::any('api/task', function() {
 
 Route::get('api/task/{id}/users', function($id) {
     $task = Task::findOrFail($id);
-    return Response::json($task->users);
+    $membersId = array();
+    foreach ($task->users as $user){
+        array_push($membersId,$user->id);
+    }
+    return Response::json($membersId);
 });
 
 Route::delete('api/task/{taskId}',function($taskId){
