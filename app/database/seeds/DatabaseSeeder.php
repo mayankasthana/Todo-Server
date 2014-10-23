@@ -14,25 +14,22 @@ class DatabaseSeeder extends Seeder {
             
             $user = new User;
             $mayank = $user;
-            $user->username = "Mayank";
+            $user->displayName = "Mayank";
             $user->email = "mayankasthana1993@gmail.com";
-            $user->password = "asdfjkl;";
             $user->save();
             $user->role()->attach($adminRole);
             
             $user = new User;
             $shivam = $user;
-            $user->username = "Shivam";
+            $user->displayName = "Shivam";
             $user->email = "shivam@kratee.com";
-            $user->password = ";lkjfdsa";
             $user->save();
             $user->role()->attach($memberRole);
 
             $user = new User;
             $mihir = $user;
-            $user->username = "Mihir";
+            $user->displayName = "Mihir";
             $user->email = "mihir@gmail.com";
-            $user->password = "password";
             $user->save();
             $user->role()->attach($memberRole);
 
@@ -42,8 +39,20 @@ class DatabaseSeeder extends Seeder {
             $task->creator()->associate($user);
             $task->save();
             $task->users()->saveMany(array($shivam,$mayank));
-  
-  
+            
+            $comment = New Comment;
+            $comment->text = "This is another comment";
+            $comment->user_id = $mihir->id;
+            $comment->task_id = $task->id;
+            $comment->save();
+            //$task->comments()->save($comment);
+            $comment = New Comment;
+            $comment->text = "This is a comment";
+            $comment->user_id = $mihir->id;
+            $comment->task_id = $task->id;
+            $comment->save();
+            
+            
             $task = new Task;
             $task->text = "Second Task";
             $task->creator()->associate($mayank);

@@ -1,5 +1,6 @@
 <?php
 
+require_once app_path() . '/../vendor/google/apiclient/autoload.php'; // or wherever autoload.php is located
 /*
   |--------------------------------------------------------------------------
   | Application Routes
@@ -12,15 +13,69 @@
  */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE');
+header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE');
 Route::get('/', function() {
+
     return View::make('hello');
 });
+
+Route::post('api/login', function() {
+    $authCode = Input::get('code');
+    $access_token = Input::get('access_token');
+    $client = new Google_Client();
+    $client->setClientId("444337330755-p48vqremkchmm6veish2k4rb6bgugf1u.apps.googleusercontent.com");
+    $client->setClientSecret("PdwKmpApHALa4dIVFdgauFmd");
+    $client->setRedirectUri("postmessage");
+
+    $client->authenticate($authCode);
+    $token = json_decode($client->getAccessToken());
+    //Match access_token as received from the client and from the google server
+    if ($access_token == $token->access_token) {
+        //Get name, email, details
+        $plus = new Google_Service_Plus($client);
+        $me = $plus->people->get('me');
+        //Check new user
+        if (!User::isUserWithOuidExists($me->id)) {
+            //If new, save details
+            User::saveGPlusUser($me);
+        }
+        //store access Token
+        User::where('ouid', '=', $me->id)->update(array('access_token' => $access_token, 'access_token_time' => $token->created));
+        $user = User::where('ouid', $me->id)->get(array('id', 'displayName'))->first();
+        Session::put('access_token', $access_token);
+        return Response::json($user, 200);
+    } else {
+        $message = [
+            "error" => [
+                "code" => 401,
+                "message" => "Invalid Credentials",
+                "Client accessToken" => $access_token,
+                "Google accessToken" => $token->access_token
+            ]
+        ];
+        return Response::json($message, 401);
+    }
+});
+
+Route::put('api/task/{taskId}/priority/{action}', function($taskId,$action) {
+    //Input is increase priority of id;
+    //Or decrease priority id;
+    //{action:'inc',task_id: 'id'}
+    if ($action == 'inc') {
+        Task::increasePriority($taskId);
+        //return Resposnse::json([], 409);
+    } else if ($action == 'dec') {
+        Task::decreasePriority($taskId);
+    }
+    return Response::json(['status' => 'saved'], 200);
+}
+);
+
 Route::get('api/tasks', function() {
     $headers = [
             // 'Access-Control-Allow-Origin'      => '*',
     ];
-    $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'priority'));
+    $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'CAST(priority AS UNSIGNED INTEGER) as priority'));
     //$tasks = Task::all();
     return Response::json($tasks, 200, $headers);
 });
@@ -36,8 +91,24 @@ Route::get('api/{username}/tasks', function($username) {
     $user = User::where('username', '=', $username)->firstOrFail();
     return Response::json($user->tasks);
 });
+Route::get('api/task/{taskId}/comments', function($taskId) {
+    $task = Task::findOrFail($taskId);
+    return $task->comments();
+});
+Route::put('api/task/{taskId}/comment', function($taskId) {
+    $commentText = Input::get('comment');
+    $userId = Input::get('userId');
+    $task = Task::findOrFail($taskId);
+    $user = User::findOrFail($userId);
+    $comment = $task->addcomment($commentText, $userId);
+    return $comment;
+});
+Route::get('setup/database', function() {
+    Artisan::call('migrate', array('--force' => true));
+    Artisan::call('db:seed', array('--force' => true));
+});
+Route::post('api/task', function() {
 
-Route::any('api/task', function() {
     $headers = [
             //'Access-Control-Allow-Origin'      => '*',
     ];
@@ -47,7 +118,7 @@ Route::any('api/task', function() {
     $task->text = $newTaskText;
     $task->creator()->associate(User::findOrFail($userId));
     $task->save();
-    
+
     //$priority = Task::savePriority($task->id);
     //$task->priority = $priority;
     return Response::json($task);
@@ -56,13 +127,13 @@ Route::any('api/task', function() {
 Route::get('api/task/{id}/users', function($id) {
     $task = Task::findOrFail($id);
     $membersId = array();
-    foreach ($task->users as $user){
-        array_push($membersId,$user->id);
+    foreach ($task->users as $user) {
+        array_push($membersId, $user->id);
     }
     return Response::json($membersId);
 });
 
-Route::delete('api/task/{taskId}',function($taskId){
+Route::delete('api/task/{taskId}', function($taskId) {
     $task = Task::findOrFail($taskId);
     $task->delete();
     //Todo remove the priority
