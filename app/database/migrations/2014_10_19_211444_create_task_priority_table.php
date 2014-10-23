@@ -9,7 +9,7 @@ class CreateTaskPriorityTable extends Migration {
 	{
 		Schema::create('task_priority', function(Blueprint $table) {
 			$table->bigInteger('task_id')->unsigned();
-			$table->integer('priority')->unique()->unsigned();
+			$table->integer('priority')->unsigned();
 		});
 	}
 
