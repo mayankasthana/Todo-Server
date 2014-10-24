@@ -57,7 +57,7 @@ Route::post('api/login', function() {
     }
 });
 
-Route::put('api/task/{taskId}/priority/{action}', function($taskId,$action) {
+Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
     //Input is increase priority of id;
     //Or decrease priority id;
     //{action:'inc',task_id: 'id'}
@@ -67,7 +67,7 @@ Route::put('api/task/{taskId}/priority/{action}', function($taskId,$action) {
     } else if ($action == 'dec') {
         Task::decreasePriority($taskId);
     }
-    return Response::json(['status' => 'saved'], 200);
+    return Response::json(Task::getAllPriorityList(), 200);
 }
 );
 
@@ -106,17 +106,16 @@ Route::put('api/task/{taskId}/comment', function($taskId) {
 Route::get('setup/database', function() {
     Artisan::call('migrate', array('--force' => true));
     Artisan::call('db:seed', array('--force' => true));
+    return '';
 });
 Route::post('api/task', function() {
 
-    $headers = [
-            //'Access-Control-Allow-Origin'      => '*',
-    ];
     $userId = Input::get('userId');
     $newTaskText = Input::get('newTaskText');
     $task = new Task;
     $task->text = $newTaskText;
     $task->creator()->associate(User::findOrFail($userId));
+    $task->status = 0;
     $task->save();
 
     //$priority = Task::savePriority($task->id);
@@ -140,3 +139,26 @@ Route::delete('api/task/{taskId}', function($taskId) {
     return 'done';
 });
 
+Route::put('api/task/{taskId}/status/{status}', function($taskId, $status) {
+    //$task = Task::findOrFail($taskId);
+    Task::setStatus($taskId, $status);
+    return Task::getAllPriorityList();
+});
+
+Route::post('api/task/{taskId}/users', function($taskId) {
+    $task = Task::findOrFail($taskId);
+    //[1,2,3]
+    $members = Input::get('ids');
+    $memberIds = $members;
+    $res = $task->addMembers($memberIds);
+    return Response::json($res);
+});
+
+Route::post('api/task/{taskId}/users/del', function($taskId) {
+    $task = Task::findOrFail($taskId);
+    //[1,2,3]
+    $members = Input::get('ids');
+    $memberIds = $members;
+    $res = $task->removeMembers($memberIds);
+    return Response::json($res);
+});

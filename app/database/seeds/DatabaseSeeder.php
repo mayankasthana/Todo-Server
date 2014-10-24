@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder {
 
             $task = new Task;
             $task->text = "New seed task";
-            $task->status = true;
+            $task->status = false;
             $task->creator()->associate($user);
             $task->save();
             $task->users()->saveMany(array($shivam,$mayank));
