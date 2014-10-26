@@ -19,10 +19,13 @@ Route::get('/', function() {
     return View::make('hello');
 });
 
-Route::get('setup/database', function() {
+Route::get('setup/database/migrate', function() {
     Artisan::call('migrate', array('--force' => true));
+    return 'done';
+});
+Route::get('setup/database/seed', function() {
     Artisan::call('db:seed', array('--force' => true));
-    return '';
+    return 'done';
 });
 
 Route::post('api/login', function() {
@@ -62,107 +65,106 @@ Route::post('api/login', function() {
         return Response::json($message, 401);
     }
 });
-Route::group(array('before'=>'auth.basic'),function(){
+Route::group(array('before' => 'auth.basic'), function() {
     Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
-    //Input is increase priority of id;
-    //Or decrease priority id;
-    //{action:'inc',task_id: 'id'}
-    if ($action == 'inc') {
-        Task::increasePriority($taskId);
-        //return Resposnse::json([], 409);
-    } else if ($action == 'dec') {
-        Task::decreasePriority($taskId);
+        //Input is increase priority of id;
+        //Or decrease priority id;
+        //{action:'inc',task_id: 'id'}
+        if ($action == 'inc') {
+            Task::increasePriority($taskId);
+            //return Resposnse::json([], 409);
+        } else if ($action == 'dec') {
+            Task::decreasePriority($taskId);
+        }
+        return Response::json(Task::getAllPriorityList(), 200);
     }
-    return Response::json(Task::getAllPriorityList(), 200);
-}
-);
+    );
 
-Route::get('api/tasks', function() {
-    $headers = [
-            // 'Access-Control-Allow-Origin'      => '*',
-    ];
-    $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'CAST(priority AS UNSIGNED INTEGER) as priority'));
-    //$tasks = Task::all();
-    return Response::json($tasks, 200, $headers);
-});
+    Route::get('api/tasks', function() {
+        $headers = [
+                // 'Access-Control-Allow-Origin'      => '*',
+        ];
+        $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'CAST(priority AS UNSIGNED INTEGER) as priority'));
+        //$tasks = Task::all();
+        return Response::json($tasks, 200, $headers);
+    });
 
-Route::get('api/users', function() {
-    $headers = [
-            //'Access-Control-Allow-Origin'      => '*',
-    ];
-    $users = User::all();
-    return Response::json($users, 200, $headers);
-});
-Route::get('api/{username}/tasks', function($username) {
-    $user = User::where('username', '=', $username)->firstOrFail();
-    return Response::json($user->tasks);
-});
-Route::get('api/task/{taskId}/comments', function($taskId) {
-    $task = Task::findOrFail($taskId);
-    return $task->comments();
-});
-Route::put('api/task/{taskId}/comment', function($taskId) {
-    $commentText = Input::get('comment');
-    $userId = Input::get('userId');
-    $task = Task::findOrFail($taskId);
-    $user = User::findOrFail($userId);
-    $comment = $task->addcomment($commentText, $userId);
-    return $comment;
-});
+    Route::get('api/users', function() {
+        $headers = [
+                //'Access-Control-Allow-Origin'      => '*',
+        ];
+        $users = User::all();
+        return Response::json($users, 200, $headers);
+    });
+    Route::get('api/{username}/tasks', function($username) {
+        $user = User::where('username', '=', $username)->firstOrFail();
+        return Response::json($user->tasks);
+    });
+    Route::get('api/task/{taskId}/comments', function($taskId) {
+        $task = Task::findOrFail($taskId);
+        return $task->comments();
+    });
+    Route::put('api/task/{taskId}/comment', function($taskId) {
+        $commentText = Input::get('comment');
+        $userId = Input::get('userId');
+        $task = Task::findOrFail($taskId);
+        $user = User::findOrFail($userId);
+        $comment = $task->addcomment($commentText, $userId);
+        return $comment;
+    });
 
-Route::post('api/task', function() {
+    Route::post('api/task', function() {
 
-    $userId = Input::get('userId');
-    $newTaskText = Input::get('newTaskText');
-    $task = new Task;
-    $task->text = $newTaskText;
-    $task->creator()->associate(User::findOrFail($userId));
-    $task->status = 0;
-    $task->save();
+        $userId = Input::get('userId');
+        $newTaskText = Input::get('newTaskText');
+        $task = new Task;
+        $task->text = $newTaskText;
+        $task->creator()->associate(User::findOrFail($userId));
+        $task->status = 0;
+        $task->save();
 
-    //$priority = Task::savePriority($task->id);
-    //$task->priority = $priority;
-    return Response::json($task);
-});
+        //$priority = Task::savePriority($task->id);
+        //$task->priority = $priority;
+        return Response::json($task);
+    });
 
-Route::get('api/task/{id}/users', function($id) {
-    $task = Task::findOrFail($id);
-    $membersId = array();
-    foreach ($task->users as $user) {
-        array_push($membersId, $user->id);
-    }
-    return Response::json($membersId);
-});
+    Route::get('api/task/{id}/users', function($id) {
+        $task = Task::findOrFail($id);
+        $membersId = array();
+        foreach ($task->users as $user) {
+            array_push($membersId, $user->id);
+        }
+        return Response::json($membersId);
+    });
 
-Route::delete('api/task/{taskId}', function($taskId) {
-    $task = Task::findOrFail($taskId);
-    $task->delete();
-    //Todo remove the priority
-    return 'done';
-});
+    Route::delete('api/task/{taskId}', function($taskId) {
+        $task = Task::findOrFail($taskId);
+        $task->delete();
+        //Todo remove the priority
+        return 'done';
+    });
 
-Route::put('api/task/{taskId}/status/{status}', function($taskId, $status) {
-    //$task = Task::findOrFail($taskId);
-    Task::setStatus($taskId, $status);
-    return Task::getAllPriorityList();
-});
+    Route::put('api/task/{taskId}/status/{status}', function($taskId, $status) {
+        //$task = Task::findOrFail($taskId);
+        Task::setStatus($taskId, $status);
+        return Task::getAllPriorityList();
+    });
 
-Route::post('api/task/{taskId}/users', function($taskId) {
-    $task = Task::findOrFail($taskId);
-    //[1,2,3]
-    $members = Input::get('ids');
-    $memberIds = $members;
-    $res = $task->addMembers($memberIds);
-    return Response::json($res);
-});
+    Route::post('api/task/{taskId}/users', function($taskId) {
+        $task = Task::findOrFail($taskId);
+        //[1,2,3]
+        $members = Input::get('ids');
+        $memberIds = $members;
+        $res = $task->addMembers($memberIds);
+        return Response::json($res);
+    });
 
-Route::post('api/task/{taskId}/users/del', function($taskId) {
-    $task = Task::findOrFail($taskId);
-    //[1,2,3]
-    $members = Input::get('ids');
-    $memberIds = $members;
-    $res = $task->removeMembers($memberIds);
-    return Response::json($res);
-});
-
+    Route::post('api/task/{taskId}/users/del', function($taskId) {
+        $task = Task::findOrFail($taskId);
+        //[1,2,3]
+        $members = Input::get('ids');
+        $memberIds = $members;
+        $res = $task->removeMembers($memberIds);
+        return Response::json($res);
+    });
 });
