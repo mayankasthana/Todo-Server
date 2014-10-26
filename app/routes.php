@@ -12,11 +12,17 @@ require_once app_path() . '/../vendor/google/apiclient/autoload.php'; // or wher
   |
  */
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, access-token');
 header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE');
 Route::get('/', function() {
 
     return View::make('hello');
+});
+
+Route::get('setup/database', function() {
+    Artisan::call('migrate', array('--force' => true));
+    Artisan::call('db:seed', array('--force' => true));
+    return '';
 });
 
 Route::post('api/login', function() {
@@ -56,8 +62,8 @@ Route::post('api/login', function() {
         return Response::json($message, 401);
     }
 });
-
-Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
+Route::group(array('before'=>'auth.basic'),function(){
+    Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
     //Input is increase priority of id;
     //Or decrease priority id;
     //{action:'inc',task_id: 'id'}
@@ -103,11 +109,7 @@ Route::put('api/task/{taskId}/comment', function($taskId) {
     $comment = $task->addcomment($commentText, $userId);
     return $comment;
 });
-Route::get('setup/database', function() {
-    Artisan::call('migrate', array('--force' => true));
-    Artisan::call('db:seed', array('--force' => true));
-    return '';
-});
+
 Route::post('api/task', function() {
 
     $userId = Input::get('userId');
@@ -161,4 +163,6 @@ Route::post('api/task/{taskId}/users/del', function($taskId) {
     $memberIds = $members;
     $res = $task->removeMembers($memberIds);
     return Response::json($res);
+});
+
 });

@@ -1,5 +1,7 @@
 <?php
 
+use Carbon\Carbon;
+
 class User extends Eloquent {
 
     protected $table = 'users';
@@ -9,9 +11,11 @@ class User extends Eloquent {
     public function role() {
         return $this->belongsToMany('Role');
     }
-    public function comments(){
-	$this->hasMany('Comment','user_id');
+
+    public function comments() {
+        $this->hasMany('Comment', 'user_id');
     }
+
     public function attempts() {
         return $this->hasMany('Login_attempts');
     }
@@ -36,6 +40,19 @@ class User extends Eloquent {
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    public static function IsValidAccessToken($accessToken) {
+        $user = User::where('access_token', $accessToken)->get(array('id', 'access_token_time'))->toArray();
+        //return Carbon::createFromTimeStamp($user->access_token_time);
+        if (sizeof($user) == 0) {
+            return false;
+        }
+        $timeDiff = Carbon::now()->diffInSeconds(Carbon::createFromTimeStamp($user[0]['access_token_time']));
+        if ($timeDiff > 3600) {
+            return false;
+        }
+        return true;
     }
 
 }
