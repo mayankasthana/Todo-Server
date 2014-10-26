@@ -5,16 +5,16 @@ use Illuminate\Database\Schema\Blueprint;
 
 class CreateRolesTable extends Migration {
 
-	public function up()
-	{
-		Schema::create('roles', function(Blueprint $table) {
-			$table->increments('id');
-			$table->string('title');
-		});
-	}
+    public function up() {
+        Schema::create('roles', function(Blueprint $table) {
+            $table->engine = 'INNODB';
+            $table->increments('id');
+            $table->string('title');
+        });
+    }
 
-	public function down()
-	{
-		Schema::drop('roles');
-	}
+    public function down() {
+        Schema::drop('roles');
+    }
+
 }
