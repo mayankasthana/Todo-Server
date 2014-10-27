@@ -182,4 +182,13 @@ class Task extends Eloquent {
                         ->delete();
     }
 
+    public function members() {
+        return array_map(function($user) {
+            return $user->user_id;
+        }, (array) DB::table('task_user')
+                        ->where('task_id', $this->id)
+                        ->select(array('user_id'))
+                        ->get());
+    }
+
 }
