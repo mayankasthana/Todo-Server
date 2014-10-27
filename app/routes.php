@@ -66,6 +66,7 @@ Route::post('api/login', function() {
     }
 });
 Route::group(array('before' => 'auth.basic'), function() {
+    TodoController::initEvents();
     Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
         //Input is increase priority of id;
         //Or decrease priority id;
@@ -138,6 +139,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::delete('api/task/{taskId}', function($taskId) {
+        Event::fire('task.deleted',$taskId);
         $task = Task::findOrFail($taskId);
         $task->delete();
         //Todo remove the priority
