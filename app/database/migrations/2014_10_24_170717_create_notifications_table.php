@@ -12,8 +12,8 @@ class CreateNotificationsTable extends Migration {
             $table->timestamps();
             $table->string('origin', 20)->nullable();
             $table->bigInteger('to_user_id')->unsigned()->index()->nullable();
-            $table->string('message', 140);
-            $table->string('type', 10);
+            $table->string('message', 512);
+            $table->string('type', 20);
             $table->timestamp('seen_time')->nullable();
         });
     }
