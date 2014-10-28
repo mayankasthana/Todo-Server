@@ -44,15 +44,22 @@ Route::post('api/login', function() {
         $plus = new Google_Service_Plus($client);
         $me = $plus->people->get('me');
         //Check new user
-        if (!User::isUserWithOuidExists($me->id)) {
+        $isNew = !User::isUserWithOuidExists($me->id);
+        if ($isNew) {
             //If new, save details
             User::saveGPlusUser($me);
         }
         //store access Token
         User::where('ouid', '=', $me->id)->update(array('access_token' => $access_token, 'access_token_time' => $token->created));
-        $user = User::where('ouid', $me->id)->get(array('id', 'displayName'))->first();
-        Session::put('access_token', $access_token);
-        return Response::json($user, 200);
+        $user = User::where('ouid', $me->id)->get()->first();
+        Event::fire('user.logged-in', $user);
+        if ($isNew) {
+            Event::fire('user.new-added', $user);
+        }
+        return Response::json(array(
+                    'id' => $user->id,
+                    'displayName' => $user->displayName
+                        ), 200);
     } else {
         $message = [
             "error" => [
@@ -77,6 +84,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         } else if ($action == 'dec') {
             Task::decreasePriority($taskId);
         }
+        Event::fire('task.change-priority', array(array('taskId' => $taskId, 'action' => $action)));
         return Response::json(Task::getAllPriorityList(), 200);
     }
     );
@@ -111,6 +119,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         $task = Task::findOrFail($taskId);
         $user = User::findOrFail($userId);
         $comment = $task->addcomment($commentText, $userId);
+        Event::fire('task.new-comment', array(array('task' => $task, 'user' => $user, 'comment' => $comment)));
         return $comment;
     });
 
@@ -139,7 +148,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::delete('api/task/{taskId}', function($taskId) {
-        Event::fire('task.deleted',$taskId);
+        Event::fire('task.deleted', $taskId);
         $task = Task::findOrFail($taskId);
         $task->delete();
         //Todo remove the priority
@@ -149,6 +158,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     Route::put('api/task/{taskId}/status/{status}', function($taskId, $status) {
         //$task = Task::findOrFail($taskId);
         Task::setStatus($taskId, $status);
+        Event::fire('task.status-changed', array(array('taskId' => $taskId, 'status' => $status)));
         return Task::getAllPriorityList();
     });
 
@@ -158,6 +168,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         $members = Input::get('ids');
         $memberIds = $members;
         $res = $task->addMembers($memberIds);
+        Event::fire('task.members-added', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
 
@@ -167,6 +178,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         $members = Input::get('ids');
         $memberIds = $members;
         $res = $task->removeMembers($memberIds);
+        Event::fire('task.members-removed', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
 });

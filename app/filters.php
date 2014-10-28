@@ -52,6 +52,8 @@ Route::filter('auth.basic', function() {
     if (!User::IsValidAccessToken($reqAccessToken)) {
         return Response::json("Logged out", 401);
     }
+    $user = User::where('access_token', $reqAccessToken)->firstOrFail();
+    GAuth::user($user->toArray());
 });
 
 /*
