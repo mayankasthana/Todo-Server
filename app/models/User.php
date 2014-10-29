@@ -6,7 +6,7 @@ class User extends Eloquent {
 
     protected $table = 'users';
     public $timestamps = true;
-    protected $hidden = array('salt', 'register_ip', 'forget_token', 'active_token','created_at','updated_at','last_token','access_token','access_token_time');
+    protected $hidden = array('salt', 'register_ip', 'forget_token', 'active_token', 'created_at', 'updated_at', 'last_token', 'access_token', 'access_token_time');
 
     public function role() {
         return $this->belongsToMany('Role');
@@ -53,6 +53,13 @@ class User extends Eloquent {
             return false;
         }
         return true;
+    }
+
+    public static function associatedTasks($userId) {
+        //DB::table('task_user')
+        return Task::whereHas('users', function($q) use($userId) {
+            $q->where('user_id', $userId);
+        })->get();
     }
 
 }

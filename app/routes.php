@@ -90,8 +90,9 @@ Route::group(array('before' => 'auth.basic'), function() {
     );
 
     Route::get('api/tasks', function() {
-        $tasks = Task::all();
-        return Response::json($tasks);
+        $userId = GAuth::user()['id'];
+        $tasks = User::associatedTasks($userId);
+        return $tasks;
     });
 
     Route::get('api/users', function() {
