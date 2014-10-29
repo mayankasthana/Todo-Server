@@ -34,8 +34,11 @@ class DatabaseSeeder extends Seeder {
             $user->role()->attach($memberRole);
 
             $task = new Task;
-            $task->text = "New seed task";
+            $task->title = "First task";
             $task->status = false;
+            $task->description = "1st desc";
+            $task->status = false;
+            
             $task->creator()->associate($user);
             $task->save();
             $task->users()->saveMany(array($shivam,$mayank));
@@ -54,7 +57,7 @@ class DatabaseSeeder extends Seeder {
             
             
             $task = new Task;
-            $task->text = "Second Task";
+            $task->title = "Second Task";
             $task->creator()->associate($mayank);
             $task->save();
             $task->users()->saveMany(array($mayank,$mihir));
