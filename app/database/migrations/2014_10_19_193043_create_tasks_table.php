@@ -12,7 +12,8 @@ class CreateTasksTable extends Migration {
             $table->timestamps();
             $table->softDeletes();
             $table->bigInteger('created_by_user_id')->unsigned();
-            $table->text('text');
+            $table->string('title',200);
+            $table->text('description');
             $table->date('deadlinedate')->nullable();
             $table->time('deadlinetime')->nullable();
             $table->timestamp('completed_at')->nullable();
