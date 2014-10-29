@@ -46,11 +46,6 @@ class CreateForeignKeys extends Migration {
                     ->onDelete('restrict')
                     ->onUpdate('restrict');
         });
-        Schema::table('task_priority', function(Blueprint $table) {
-            $table->foreign('task_id')->references('id')->on('tasks')
-                    ->onDelete('restrict')
-                    ->onUpdate('restrict');
-        });
         Schema::table('comments', function(Blueprint $table) {
             $table->foreign('task_id')->references('id')->on('tasks')
                     ->onDelete('restrict')

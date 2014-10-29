@@ -13,7 +13,11 @@ class CreateTasksTable extends Migration {
             $table->softDeletes();
             $table->bigInteger('created_by_user_id')->unsigned();
             $table->text('text');
+            $table->date('deadlinedate')->nullable();
+            $table->time('deadlinetime')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->boolean('status');
+            $table->tinyInteger('priority')->unsigned()->default(1);
         });
     }
 
