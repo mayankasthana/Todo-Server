@@ -95,11 +95,8 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::get('api/users', function() {
-        $headers = [
-                //'Access-Control-Allow-Origin'      => '*',
-        ];
         $users = User::all();
-        return Response::json($users, 200, $headers);
+        return Response::json($users);
     });
     Route::get('api/{username}/tasks', function($username) {
         $user = User::where('username', '=', $username)->firstOrFail();
