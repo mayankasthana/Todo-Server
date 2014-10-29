@@ -90,12 +90,8 @@ Route::group(array('before' => 'auth.basic'), function() {
     );
 
     Route::get('api/tasks', function() {
-        $headers = [
-                // 'Access-Control-Allow-Origin'      => '*',
-        ];
-        $tasks = Task::all(array('id', 'text', 'created_at', 'updated_at', 'created_by_user_id as authorId', 'status', 'CAST(priority AS UNSIGNED INTEGER) as priority'));
-        //$tasks = Task::all();
-        return Response::json($tasks, 200, $headers);
+        $tasks = Task::all();
+        return Response::json($tasks);
     });
 
     Route::get('api/users', function() {
@@ -124,8 +120,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::post('api/task', function() {
-
-        $userId = Input::get('userId');
+        $userId = GAuth::user()['id'];
         $newTaskText = Input::get('newTaskText');
         $task = new Task;
         $task->text = $newTaskText;
