@@ -74,6 +74,11 @@ Route::post('api/login', function() {
 });
 Route::group(array('before' => 'auth.basic'), function() {
     TodoController::initEvents();
+    
+    Route::get('api/me', function() {
+        return GAuth::user();
+    });
+    
     Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
         //Input is increase priority of id;
         //Or decrease priority id;
