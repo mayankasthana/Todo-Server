@@ -50,19 +50,19 @@ return array(
             'host' => 'localhost',
             'database' => call_user_func(function() {
                 $db = 'todo';
-                if (getenv('COMPUTERNAME') != "BHEL-THINK") {
+                if (gethostname() != "mihirpc") {
                     return 'mayank_' . 'todo';
                 }
                 return $db;
             }),
             'username' => call_user_func(function() {
-                if (getenv('COMPUTERNAME') != "BHEL-THINK") {
+                if (gethostname() != "mihirpc") {
                     return "mayank_todo";
                 } else
                     return 'root';
             }),
             'password' => call_user_func(function() {
-                if (getenv('COMPUTERNAME') != "BHEL-THINK") {
+                if (gethostname() != "mihirpc") {
                     return 'U5WESfVe9lM!';
                 }
                 return '';
