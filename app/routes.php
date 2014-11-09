@@ -74,11 +74,11 @@ Route::post('api/login', function() {
 });
 Route::group(array('before' => 'auth.basic'), function() {
     TodoController::initEvents();
-    
+
     Route::get('api/me', function() {
         return GAuth::user();
     });
-    
+
     Route::put('api/task/{taskId}/priority/{action}', function($taskId, $action) {
         //Input is increase priority of id;
         //Or decrease priority id;
@@ -104,6 +104,12 @@ Route::group(array('before' => 'auth.basic'), function() {
         $users = User::all();
         return Response::json($users);
     });
+    Route::get('api/notifs', function() {
+        $userId = GAuth::user()['id'];
+        return Notification::where('to_user_id', $userId)
+                        ->orderBy('id', 'DESC')
+                        ->get();
+    });
     Route::get('api/{username}/tasks', function($username) {
         $user = User::where('username', '=', $username)->firstOrFail();
         return Response::json($user->tasks);
@@ -124,9 +130,25 @@ Route::group(array('before' => 'auth.basic'), function() {
 
     Route::post('api/task', function() {
         $userId = GAuth::user()['id'];
-        $newTaskText = Input::get('newTaskText');
+        $title = Input::get('title');
+        $description = Input::get('description');
+        $priority = Input::get('priority');
+        $deadlineDate = Input::get('deadlinedate');
+        $deadlineTime = Input::get('deadlinetime');
+        $taskId = Input::get('id');
+        if ($deadlineDate == null && $deadlineTime != null) {
+            //consider today's date
+            $deadlineDate = date('Y-m-d', time());
+        }
         $task = new Task;
-        $task->text = $newTaskText;
+        if ($taskId != null) { //existing task update
+            $task = Task::findOrFail($taskId);
+        }
+        $task->title = $title;
+        $task->description = $description;
+        $task->priority = $priority;
+        $task->deadlinedate = $deadlineDate;
+        $task->deadlinetime = $deadlineTime;
         $task->creator()->associate(User::findOrFail($userId));
         $task->status = 0;
         $task->save();
@@ -154,10 +176,22 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::put('api/task/{taskId}/status/{status}', function($taskId, $status) {
-        //$task = Task::findOrFail($taskId);
-        Task::setStatus($taskId, $status);
-        Event::fire('task.status-changed', array(array('taskId' => $taskId, 'status' => $status)));
-        return Task::getAllPriorityList();
+        $task = Task::findOrFail($taskId);
+        if ($status == 0 && $task->status == 1) {
+            //completed task again incomplete
+            //need to delete completed_at timestamp
+            $task->completed_at = null;
+        } else if ($status == 1 && $task->status == 0) {
+            //task marked complete
+            //need to set completed_at timestamp
+            $task->completed_at = time();
+        }
+        $task->status = $status;
+        $task->save();
+        Event::fire('task.status-changed', array(array('taskId' => $taskId, 'oldStatus' => $task->status, 'newStatus' => $status)));
+        //Task::setStatus($taskId, $status);
+
+        return $task;
     });
 
     Route::post('api/task/{taskId}/users', function($taskId) {

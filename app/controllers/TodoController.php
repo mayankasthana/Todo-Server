@@ -46,18 +46,20 @@ class TodoController extends Controller {
             //Notify every task member
             //Log::info(print_r($payload,true));
             $taskId = $payload['taskId'];
-            $status = $payload['status'];
+            $oldStatus = $payload['oldStatus'];
+            $newStatus = $payload['newStatus'];
             $message = '';
             $task = Task::findOrFail($taskId);
-            if ($status == '1') {
+            if ($newStatus == '1') {
                 $message = "The task: '" . self::taskMarkup($task->id) . "' was marked done by " . self::userMarkup(GAuth::user()['id']);
-            } else if ($status == '0') {
+            } else if ($newStatus == '0') {
                 $message = "The task: '" . self::taskMarkup($task->id) . "' was marked not done by " . self::userMarkup(GAuth::user()['id']);
             }
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id']))
+                if (intval($memId) != intval(GAuth::user()['id'])) {
                     Notification::notify($memId, $message, 'task.status-changed', 'User ' . GAuth::user()['id']);
+                }
             }
         });
         Event::listen('task.change-priority', function($payload) {
