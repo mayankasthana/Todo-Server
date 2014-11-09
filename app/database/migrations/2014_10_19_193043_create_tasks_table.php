@@ -7,11 +7,11 @@ class CreateTasksTable extends Migration {
 
     public function up() {
         Schema::create('tasks', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+           // $table->engine = 'INNODB';
             $table->bigIncrements('id');
             $table->timestamps();
             $table->softDeletes();
-            $table->bigInteger('created_by_user_id')->unsigned();
+            $table->bigInteger('created_by_user_id')->unsigned()->index();
             $table->string('title',200);
             $table->text('description');
             $table->date('deadlinedate')->nullable();

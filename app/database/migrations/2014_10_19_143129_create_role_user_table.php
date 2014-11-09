@@ -7,7 +7,7 @@ class CreateRoleUserTable extends Migration {
 
     public function up() {
         Schema::create('role_user', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+            //$table->engine = 'INNODB';
             $table->integer('role_id')->unsigned();
             $table->bigInteger('user_id')->unsigned();
         });

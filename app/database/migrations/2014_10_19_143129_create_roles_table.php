@@ -7,7 +7,7 @@ class CreateRolesTable extends Migration {
 
     public function up() {
         Schema::create('roles', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+           // $table->engine = 'INNODB';
             $table->increments('id');
             $table->string('title');
         });

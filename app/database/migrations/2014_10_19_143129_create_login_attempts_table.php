@@ -7,7 +7,7 @@ class CreateLoginAttemptsTable extends Migration {
 
     public function up() {
         Schema::create('login_attempts', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+            //$table->engine = 'INNODB';
             $table->increments('id');
             $table->bigInteger('user_id')->unsigned();
             $table->string('login_ip', 15);

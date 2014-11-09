@@ -7,7 +7,7 @@ class CreateNotificationsTable extends Migration {
 
     public function up() {
         Schema::create('notifications', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+            //$table->engine = 'INNODB';
             $table->increments('id');
             $table->timestamps();
             $table->string('origin', 20)->nullable();

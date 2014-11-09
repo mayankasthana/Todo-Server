@@ -7,7 +7,7 @@ class CreatePermissionsTable extends Migration {
 
     public function up() {
         Schema::create('permissions', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+           // $table->engine = 'INNODB';
             $table->increments('id');
             $table->string('slug', 100);
         });

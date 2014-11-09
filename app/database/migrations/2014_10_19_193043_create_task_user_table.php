@@ -7,7 +7,7 @@ class CreateTaskUserTable extends Migration {
 
     public function up() {
         Schema::create('task_user', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+           // $table->engine = 'INNODB';
             $table->bigIncrements('id');
             $table->bigInteger('task_id')->unsigned()->index();
             $table->bigInteger('user_id')->unsigned()->index();

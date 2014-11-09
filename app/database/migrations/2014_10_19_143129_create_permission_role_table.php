@@ -7,7 +7,7 @@ class CreatePermissionRoleTable extends Migration {
 
     public function up() {
         Schema::create('permission_role', function(Blueprint $table) {
-            $table->engine = 'INNODB';
+            //$table->engine = 'INNODB';
             $table->integer('permission_id')->unsigned();
             $table->integer('role_id')->unsigned();
         });
