@@ -4,6 +4,7 @@ class Notification extends Eloquent {
 
     protected $table = 'notifications';
     public $timestamps = true;
+    protected $hidden = array('updated_at');
 
     public static function notify($toUserId, $message, $type = null, $origin = null) {
         $notification =  new Notification;
