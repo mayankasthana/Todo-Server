@@ -22,7 +22,7 @@ class Task extends Eloquent {
     }
 
     public function comments() {
-        return Comment::where('task_id', $this->id)->get(array('id', 'text', 'task_id', 'user_id', 'created_at as date'));
+        return Comment::where('task_id', $this->id)->get(array('id', 'text', 'task_id', 'user_id', 'created_at'));
     }
 
     public function users() {
