@@ -23,7 +23,9 @@ class User extends Eloquent {
     public function tasks() {
         return $this->belongsToMany('Task');
     }
-
+    public function assignedTasks(){
+        return $this->belongsToMany('Task','task_user_assign','user_id','task_id');
+    }
     public static function saveGPlusUser($user) {
         // $user->
         $newUser = new User;

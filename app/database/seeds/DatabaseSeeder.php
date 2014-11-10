@@ -61,6 +61,7 @@ class DatabaseSeeder extends Seeder {
             $task->creator()->associate($mayank);
             $task->save();
             $task->users()->saveMany(array($mayank,$mihir));
+            $task->assignees()->saveMany(array($mihir));
 		Eloquent::unguard();
 	}
 }

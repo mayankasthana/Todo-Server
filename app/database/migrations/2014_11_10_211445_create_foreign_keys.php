@@ -61,6 +61,16 @@ class CreateForeignKeys extends Migration {
                     ->onDelete('set null')
                     ->onUpdate('restrict');
         });
+        Schema::table('task_user_assign', function(Blueprint $table) {
+            $table->foreign('user_id')->references('id')->on('users')
+                    ->onDelete('restrict')
+                    ->onUpdate('restrict');
+        });
+        Schema::table('task_user_assign', function(Blueprint $table) {
+            $table->foreign('task_id')->references('id')->on('tasks')
+                    ->onDelete('restrict')
+                    ->onUpdate('restrict');
+        });
     }
 
     public function down() {
@@ -96,6 +106,12 @@ class CreateForeignKeys extends Migration {
         });
         Schema::table('notifications', function(Blueprint $table) {
             $table->dropForeign('notifications_to_user_id_foreign');
+        });
+        Schema::table('task_user_assign', function(Blueprint $table) {
+            $table->dropForeign('task_user_assign_task_id_foreign');
+        });
+        Schema::table('task_user_assign', function(Blueprint $table) {
+            $table->dropForeign('task_user_assign_user_id_foreign');
         });
     }
 

@@ -32,6 +32,10 @@ class Task extends Eloquent {
     public function creator() {
         return $this->belongsTo('User', 'created_by_user_id');
     }
+    
+    public function assignees(){
+        return $this->belongsToMany('User','task_user_assign','task_id','user_id');
+    }
 
 //  public function priority() {
 //      return $this->hasOne('Task_priority', 'task_id');
