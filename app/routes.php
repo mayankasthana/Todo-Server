@@ -107,6 +107,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     Route::get('api/notifs', function() {
         $userId = GAuth::user()['id'];
         return Notification::where('to_user_id', $userId)
+                        ->whereNull('seen_time')
                         ->orderBy('id', 'DESC')
                         ->get();
     });
@@ -127,7 +128,12 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.new-comment', array(array('task' => $task, 'user' => $user, 'comment' => $comment)));
         return $comment;
     });
-
+    
+    Route::put('api/notif/{notifId}/seen', function($notifId) {
+        Notification::markSeen($notifId);
+        Event::fire('notif-seen', array($notifId));
+    });
+    
     Route::post('api/task', function() {
         $userId = GAuth::user()['id'];
         $title = Input::get('title');
@@ -167,6 +173,15 @@ Route::group(array('before' => 'auth.basic'), function() {
         return Response::json($membersId);
     });
 
+    Route::get('api/task/{id}/assignees', function($id) {
+        $task = Task::findOrFail($id);
+        $assigneeId = array();
+        foreach ($task->assignees as $user) {
+            array_push($assigneeId, $user->id);
+        }
+        return Response::json($assigneeId);
+    });
+
     Route::delete('api/task/{taskId}', function($taskId) {
         Event::fire('task.deleted', $taskId);
         $task = Task::findOrFail($taskId);
@@ -203,6 +218,14 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.members-added', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
+    
+    Route::post('api/task/{taskId}/assign',function($taskId){
+        $task = Task::findOrFail($taskId);
+        $memberIds = Input::get('ids');
+        $res = $task->assignMembers($memberIds);
+        Event::fire('task.assigned',array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
+        return Response::json($res);
+    });
 
     Route::post('api/task/{taskId}/users/del', function($taskId) {
         $task = Task::findOrFail($taskId);
@@ -211,6 +234,16 @@ Route::group(array('before' => 'auth.basic'), function() {
         $memberIds = $members;
         $res = $task->removeMembers($memberIds);
         Event::fire('task.members-removed', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
+        return Response::json($res);
+    });
+    
+    Route::post('api/task/{taskId}/assignee/del', function($taskId) {
+        $task = Task::findOrFail($taskId);
+        //[1,2,3]
+        $members = Input::get('ids');
+        $memberIds = $members;
+        $res = $task->removeAssignees($memberIds);
+        Event::fire('task.assignee-removed', array(array('taskId' => $taskId, 'assigneeIds' => $memberIds)));
         return Response::json($res);
     });
 });

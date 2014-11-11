@@ -10,7 +10,7 @@ class Task extends Eloquent {
     use SoftDeletingTrait;
 
     protected $dates = ['deleted_at'];
-    protected $hidden = array('softDeletes','updated_at','deleted_at');
+    protected $hidden = array('softDeletes', 'updated_at', 'deleted_at');
 
     public function addcomment($commentText, $userId) {
         $comment = New Comment;
@@ -32,9 +32,9 @@ class Task extends Eloquent {
     public function creator() {
         return $this->belongsTo('User', 'created_by_user_id');
     }
-    
-    public function assignees(){
-        return $this->belongsToMany('User','task_user_assign','task_id','user_id');
+
+    public function assignees() {
+        return $this->belongsToMany('User', 'task_user_assign', 'task_id', 'user_id');
     }
 
 //  public function priority() {
@@ -77,9 +77,20 @@ class Task extends Eloquent {
         DB::commit();
     }
 
+    public function taskMemberExists($memId) {
+        $exists = DB::table('task_user')
+                        ->where('task_id', $this->id)
+                        ->where('user_id', $memId)
+                        ->count() > 0;
+        return $exists;
+    }
+
     public function addMembers($memberIds) {
         $data = array();
         for ($i = 0; $i < sizeof($memberIds); $i++) {
+            if ($this->taskMemberExists($memberIds[$i])) {
+                continue;
+            }
             $dataItem = array();
             $dataItem['task_id'] = $this->id;
             $dataItem['user_id'] = $memberIds[$i];
@@ -89,8 +100,28 @@ class Task extends Eloquent {
                         ->insert($data);
     }
 
+    public function assignMembers($membersIds) {
+        $data = array();
+        for ($i = 0; $i < sizeof($membersIds); $i++) {
+            $dataItem = array();
+            $dataItem['task_id'] = $this->id;
+            $dataItem['user_id'] = $membersIds[$i];
+            array_push($data, $dataItem);
+        }
+        return DB::table('task_user_assign')
+                        ->insert($data);
+    }
+
     public function removeMembers($memberIds) {
-        return DB::table('task_user')
+        $res = DB::table('task_user')
+                ->where('task_id', $this->id)
+                ->whereIn('user_id', $memberIds)
+                ->delete();
+        return $res;
+    }
+
+    public function removeAssignees($memberIds) {
+        return DB::table('task_user_assign')
                         ->where('task_id', $this->id)
                         ->whereIn('user_id', $memberIds)
                         ->delete();

@@ -60,11 +60,11 @@ class User extends Eloquent {
     public static function associatedTasks($userId) {
         //DB::table('task_user')
         $tasks = Task::where('created_by_user_id', $userId)
-                        ->whereNull('deleted_at')
-                        ->orWhereHas('users', function($q) use($userId) {
-                            $q->where('user_id', $userId)
-                            ->whereNull('deleted_at');
-                        })->get();
+                ->whereNull('deleted_at')
+                ->orWhereHas('users', function($q) use($userId) {
+                    $q->where('user_id', $userId)
+                    ->whereNull('deleted_at');
+                })->get();
         return $tasks;
     }
 

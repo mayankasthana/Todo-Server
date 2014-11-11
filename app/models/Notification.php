@@ -14,5 +14,9 @@ class Notification extends Eloquent {
         $notification->type = $type;
         $notification->save();
     }
-
+    public static function markSeen($notifId){
+        $notif = Notification::findOrFail($notifId);
+        $notif->seen_time = date("Y-m-d H:i:s");
+        $notif->save();
+    }
 }
