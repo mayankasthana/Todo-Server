@@ -18,7 +18,7 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
-
+Route::get('/testemail','EmailController@welcome');
 Route::get('setup/database/migrate', function() {
     Artisan::call('migrate', array('--force' => true));
     return 'done';
@@ -74,7 +74,7 @@ Route::post('api/login', function() {
 });
 Route::group(array('before' => 'auth.basic'), function() {
     TodoController::initEvents();
-
+    EmailController::initEmailListeners();
     Route::get('api/me', function() {
         return GAuth::user();
     });
