@@ -19,7 +19,8 @@ class TodoController extends Controller {
          */
         Event::listen('user.new-added', function($user) {
             //Email me who was added.
-            $message = "Hi " . self::userMarkup($user->id) . ", Welcome to todo.";
+           // $message = "Hi " . self::userMarkup($user->id) . ", Welcome to todo.";
+            $message = "Hi ". ", Welcome to todo.";
             Notification::notify($user->id, $message, 'user.new-added');
         });
         Event::listen('user.logged-in', function($user) {
