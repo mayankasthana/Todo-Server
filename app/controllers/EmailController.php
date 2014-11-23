@@ -8,8 +8,11 @@ class EmailController extends Controller {
 
     public static function initEmailListeners() {
         Event::listen('user.new-added', function($user = null) {
-            $user = User::findOrFail(1);
-            //Email me who was added.
+            //$user = User::findOrFail(1);
+            if($user == null){
+                $user = GAuth::user();
+            }
+//Email me who was added.
             Mail::send('emails.welcome', ['user' => $user], function($message) use($user) {
                 $message->to($user->email, 'Todo')->subject('Welcome to Todo!');
             });
