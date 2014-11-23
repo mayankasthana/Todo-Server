@@ -6,16 +6,40 @@ class EmailController extends Controller {
         EmailController::initEmailListeners();
     }
 
+    public function sendDeferredEmails() {
+        $deferredEmails = Email::where('send_status', false)
+                ->where('time_to_send', '<=', DB::raw('CURRENT_TIMESTAMP'))
+                ->take(3)
+                ->get();
+        foreach ($deferredEmails as $defEmail) {
+            Mail::send('emails.blank', array('msg' => $defEmail->body), function($message) use($defEmail) {
+                $message->to($defEmail->to_email_id, 'Todo')->subject($defEmail->subject);
+            });
+            $defEmail->send_status = true;
+            $defEmail->sent_time = DB::raw('CURRENT_TIMESTAMP');
+            $defEmail->save();
+        }
+    }
+
     public static function initEmailListeners() {
         Event::listen('user.new-added', function($user = null) {
             //$user = User::findOrFail(1);
-            if($user == null){
+            if ($user == null) {
                 $user = GAuth::user();
             }
+
 //Email me who was added.
-            Mail::send('emails.welcome', ['user' => $user], function($message) use($user) {
-                $message->to($user->email, 'Todo')->subject('Welcome to Todo!');
-            });
+            /*            Mail::send('emails.welcome', ['user' => $user], function($message) use($user) {
+              $message->to($user->email, 'Todo')->subject('Welcome to Todo!');
+              }); */
+            $from = "System";
+            $toEmailId = $user->email;
+            $type = 'user.new-added';
+            $subject = 'Welcome to Todo!';
+            $view = View::make('emails.welcome', ['user' => $user]);
+            $body = $view->render();
+            $timeToSend = null;
+            Email::deferSend($from, $toEmailId, $type, $subject, $body, $timeToSend);
         });
         Event::listen('user.logged-in', function($user) {
             GAuth::user($user->toArray());
@@ -27,26 +51,30 @@ class EmailController extends Controller {
             
         });
         Event::listen('task.deleted', function($taskId) {
-            return;
+            //return;
 //email if required
             Log::debug('task.delete Event');
             Log::debug('Trying to send mail');
             $task = Task::findOrFail($taskId);
-            $message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
+            //$message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
             $taskMembers = $task->members();
             $taskMembers = User::whereIn('id', $taskMembers)->get();
             //from person
             $fromUser = GAuth::user();
             //TODO replace hardcoded id with auth me
-            $content = $fromUser['displayName'] . " deleted the task '" . $task->title . "'.";
+            //$content = $fromUser['displayName'] . " deleted the task '" . $task->title . "'.";
+            $content = "The task: '" . $task->title . "' was removed by " . GAuth::user()['displayName'];
             foreach ($taskMembers as $mem) {
                 if (intval($mem->id) != intval(GAuth::user()['id'])) {
-                    Mail::send('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content], function($message) use($mem) {
-                        $message->to($mem->email, 'Todo')->subject('Task Removed');
-                    });
+                    /*        Mail::send('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content], function($message) use($mem) {
+                      $message->to($mem->email, 'Todo')->subject('Task Removed');
+                      }); */
+                    $view = View::make('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content]);
+                    $body = $view->render();
+                    Email::deferSend('sys', $mem->email, 'task.deleted', 'Task Removed', $body, null);
                 }
             }
-        },5);
+        }, 3);
         Event::listen('task.status-changed', function($payload) {
 //Notify every task member
 //Log::info(print_r($payload,true));
