@@ -2,7 +2,7 @@
 
 class TodoController extends Controller {
 
-     public static function initEvents(){
+    public static function initEvents() {
         /*
          * New user event
          * Logged in event
@@ -19,8 +19,8 @@ class TodoController extends Controller {
          */
         Event::listen('user.new-added', function($user) {
             //Email me who was added.
-           // $message = "Hi " . self::userMarkup($user->id) . ", Welcome to todo.";
-            $message = "Hi ". ", Welcome to todo.";
+            // $message = "Hi " . self::userMarkup($user->id) . ", Welcome to todo.";
+            $message = "Hi " . ", Welcome to todo.";
             Notification::notify($user->id, $message, 'user.new-added');
         });
         Event::listen('user.logged-in', function($user) {
@@ -36,13 +36,14 @@ class TodoController extends Controller {
             //Notify every task member
             //Also email if required
             $task = Task::findOrFail($taskId);
-            $message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
+            //$message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
+            $message = "The task: '" . $task->title . "' was removed by " . GAuth::user()['displayName'];
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
                 if (intval($memId) != intval(GAuth::user()['id']))
                     Notification::notify($memId, $message, 'task.deleted', 'User ' . $task->created_by_user_id);
             }
-        });
+        },5);
         Event::listen('task.status-changed', function($payload) {
             //Notify every task member
             //Log::info(print_r($payload,true));
