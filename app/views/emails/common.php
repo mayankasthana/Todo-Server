@@ -34,7 +34,7 @@
 </head>
 <body>
 	<div class="welcome">
-            <h2>Hey <?php echo $user->displayName;?>,</h2>
+            <h3>Hey <?php echo $user->displayName;?>,</h3>
             <h3><?php echo $content;?></h3>
                 <a href="http://todoclient.mayankasthana.com">Todo</a>
 	</div>
