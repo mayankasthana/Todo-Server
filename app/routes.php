@@ -18,7 +18,7 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
-Route::get('/testemail','EmailController@welcome');
+Route::get('/sendemails','EmailController@sendDeferredEmails');
 Route::get('setup/database/migrate', function() {
     Artisan::call('migrate', array('--force' => true));
     return 'done';
