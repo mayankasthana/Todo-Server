@@ -8,4 +8,8 @@ composer.lock
 Thumbs.db
 /app/storage/sessions/*
 /app/storage/debugbar/*
+<<<<<<< HEAD
 /app/storage/files/flow/*
+=======
+/app/storsage/files/flow/*
+>>>>>>> c1741a15eb8c6b9749c57cf51787afef4a200005
