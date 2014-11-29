@@ -22,7 +22,7 @@ class CreateEmailsTable extends Migration {
     }
 
     public function down() {
-        Schema::drop('notifications');
+        Schema::drop('emails');
     }
 
 }
