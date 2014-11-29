@@ -18,7 +18,8 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
-Route::get('/sendemails','EmailController@sendDeferredEmails');
+Route::any('/upload/{taskId}/{userId}/', 'AttachmentsController@uploadHandler');
+Route::get('/sendemails', 'EmailController@sendDeferredEmails');
 Route::get('setup/database/migrate', function() {
     Artisan::call('migrate', array('--force' => true));
     return 'done';
@@ -128,12 +129,12 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.new-comment', array(array('task' => $task, 'user' => $user, 'comment' => $comment)));
         return $comment;
     });
-    
+
     Route::put('api/notif/{notifId}/seen', function($notifId) {
         Notification::markSeen($notifId);
         Event::fire('notif-seen', array($notifId));
     });
-    
+
     Route::post('api/task', function() {
         $userId = GAuth::user()['id'];
         $title = Input::get('title');
@@ -218,12 +219,12 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.members-added', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
-    
-    Route::post('api/task/{taskId}/assign',function($taskId){
+
+    Route::post('api/task/{taskId}/assign', function($taskId) {
         $task = Task::findOrFail($taskId);
         $memberIds = Input::get('ids');
         $res = $task->assignMembers($memberIds);
-        Event::fire('task.assigned',array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
+        Event::fire('task.assigned', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
 
@@ -236,7 +237,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.members-removed', array(array('taskId' => $taskId, 'memberIds' => $memberIds)));
         return Response::json($res);
     });
-    
+
     Route::post('api/task/{taskId}/assignee/del', function($taskId) {
         $task = Task::findOrFail($taskId);
         //[1,2,3]
@@ -246,4 +247,25 @@ Route::group(array('before' => 'auth.basic'), function() {
         Event::fire('task.assignee-removed', array(array('taskId' => $taskId, 'assigneeIds' => $memberIds)));
         return Response::json($res);
     });
+
+    Route::delete('api/att/{attId}', function($attId) {
+        $att = Attachment::findOrFail($attId);
+        if ($att->deleteAttachedFile()) {
+            $att->delete();
+        }
+    });
+});
+
+Route::get('api/task/{taskId}/atts', function($taskId) {
+    $task = Task::findOrFail($taskId);
+    $attachments = Attachment::getAttachmentsByTask($task);
+    return Response::json($attachments);
+});
+
+Route::get('api/att/{attId}', function($attId) {
+
+    /*
+     * Todo check me authorized...
+     */
+    return Attachment::downloadAttachment($attId);
 });
