@@ -6,7 +6,17 @@ class User extends Eloquent {
 
     protected $table = 'users';
     public $timestamps = true;
-    protected $hidden = array('salt', 'register_ip', 'forget_token', 'active_token', 'created_at', 'updated_at', 'last_token', 'access_token');
+    protected $hidden = array(
+        'salt',
+        'register_ip',
+        'forget_token',
+        'active_token',
+        'created_at',
+        'updated_at',
+        'last_token',
+        'access_token',
+        'pivot'
+        );
 
     public function role() {
         return $this->belongsToMany('Role');
@@ -23,9 +33,11 @@ class User extends Eloquent {
     public function tasks() {
         return $this->belongsToMany('Task');
     }
-    public function assignedTasks(){
-        return $this->belongsToMany('Task','task_user_assign','user_id','task_id');
+
+    public function assignedTasks() {
+        return $this->belongsToMany('Task', 'task_user_assign', 'user_id', 'task_id');
     }
+
     public static function saveGPlusUser($user) {
         // $user->
         $newUser = new User;
@@ -57,14 +69,18 @@ class User extends Eloquent {
         return true;
     }
 
+    public function myTasks() {
+        return User::associatedTasks($this->id);
+    }
+
     public static function associatedTasks($userId) {
         //DB::table('task_user')
         $tasks = Task::where('created_by_user_id', $userId)
                 ->whereNull('deleted_at')
                 ->orWhereHas('users', function($q) use($userId) {
-                    $q->where('user_id', $userId)
-                    ->whereNull('deleted_at');
-                })->get();
+            $q->where('user_id', $userId)
+            ->whereNull('deleted_at');
+        });
         return $tasks;
     }
 
