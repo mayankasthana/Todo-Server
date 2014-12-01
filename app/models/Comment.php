@@ -6,7 +6,10 @@ class Comment extends Eloquent {
 
 	protected $table = 'comments';
 	public $timestamps = true;
-
+        public $hidden = array(
+            'updated_at',
+            'deleted_at'
+        );
 	use SoftDeletingTrait;
 
 	protected $dates = ['deleted_at'];
