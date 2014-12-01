@@ -22,7 +22,12 @@ class Task extends Eloquent {
     }
 
     public function comments() {
-        return Comment::where('task_id', $this->id)->get(array('id', 'text', 'task_id', 'user_id', 'created_at'));
+        //    return Comment::where('task_id', $this->id)->get(array('id', 'text', 'task_id', 'user_id', 'created_at'));
+        return $this->hasMany('comment');
+    }
+
+    public function attachments() {
+        return $this->hasMany('attachment');
     }
 
     public function users() {
@@ -35,6 +40,28 @@ class Task extends Eloquent {
 
     public function assignees() {
         return $this->belongsToMany('User', 'task_user_assign', 'task_id', 'user_id');
+    }
+
+    public static function priorityText($priorityNbr) {
+        $priorityCode = intVal($priorityNbr);
+        $priorityText = '';
+        switch ($priorityCode) {
+            case 0:
+                $priorityText = 'Low';
+                break;
+            case 1:
+                $priorityText = 'Normal';
+                break;
+            case 2:
+                $priorityText = 'High';
+                break;
+            case 3:
+                $priorityText = 'Urgent';
+                break;
+            default :
+                $priorityText = 'Unknown';
+        }
+        return $priorityText;
     }
 
 //  public function priority() {
