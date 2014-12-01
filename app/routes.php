@@ -18,6 +18,7 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
+Route::get('/export/xml','ExportsController@test');
 Route::any('/upload/{taskId}/{userId}/', 'AttachmentsController@uploadHandler');
 Route::get('/sendemails', 'EmailController@sendDeferredEmails');
 Route::get('setup/database/migrate', function() {
@@ -97,7 +98,7 @@ Route::group(array('before' => 'auth.basic'), function() {
 
     Route::get('api/tasks', function() {
         $userId = GAuth::user()['id'];
-        $tasks = User::associatedTasks($userId);
+        $tasks = User::associatedTasks($userId)->get();
         return $tasks;
     });
 
@@ -118,7 +119,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
     Route::get('api/task/{taskId}/comments', function($taskId) {
         $task = Task::findOrFail($taskId);
-        return $task->comments();
+        return $task->comments;
     });
     Route::put('api/task/{taskId}/comment', function($taskId) {
         $commentText = Input::get('comment');
