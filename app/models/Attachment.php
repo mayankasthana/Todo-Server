@@ -6,6 +6,10 @@ class Attachment extends Eloquent {
     public $timestamps = true;
     protected $hidden = array('updated_at');
 
+    public function task() {
+        return $this->belongsTo('task');
+    }
+
     public static function getAttachmentsByTask($task) {
         $attachments = Attachment::where('task_id', $task->id)
                 ->select(
@@ -45,12 +49,17 @@ class Attachment extends Eloquent {
     }
 
     public function filePath() {
-        $filePath = storage_path()
-                . '/files/flow/uploads/'
-                . $this->task_id . '/'
-                . $this->user_id . '/'
-                . $this->savedFileName;
-        return $filePath;
+
+        return Attachment::getFileSavedPath(
+                        $this->task_id, $this->user_id, $this->savedFileName);
     }
 
+    public static function getFileSavedPath($taskId, $userId, $savedFileName) {
+        $filePath = storage_path()
+                . '/files/flow/uploads/'
+                . $taskId . '/'
+                . $userId . '/'
+                . $savedFileName;
+        return $filePath;
+    }
 }
