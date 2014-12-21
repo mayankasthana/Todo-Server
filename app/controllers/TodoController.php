@@ -24,7 +24,7 @@ class TodoController extends Controller {
             Notification::notify($user->id, $message, 'user.new-added');
         });
         Event::listen('user.logged-in', function($user) {
-            GAuth::user($user->toArray());
+            GAuth::user($user);
         });
         Event::listen('user.token-expired', function($userId) {
             
@@ -36,11 +36,11 @@ class TodoController extends Controller {
             //Notify every task member
             //Also email if required
             $task = Task::findOrFail($taskId);
-            //$message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
-            $message = "The task: '" . $task->title . "' was removed by " . GAuth::user()['displayName'];
+            //$message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()->id);
+            $message = "The task: '" . $task->title . "' was removed by " . GAuth::user()->displayName;
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id']))
+                if (intval($memId) != intval(GAuth::user()->id))
                     Notification::notify($memId, $message, 'task.deleted', 'User ' . $task->created_by_user_id);
             }
         },5);
@@ -53,14 +53,14 @@ class TodoController extends Controller {
             $message = '';
             $task = Task::findOrFail($taskId);
             if ($newStatus == '1') {
-                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked done by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked done by " . self::userMarkup(GAuth::user()->id);
             } else if ($newStatus == '0') {
-                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked not done by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked not done by " . self::userMarkup(GAuth::user()->id);
             }
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id'])) {
-                    Notification::notify($memId, $message, 'task.status-changed', 'User ' . GAuth::user()['id']);
+                if (intval($memId) != intval(GAuth::user()->id)) {
+                    Notification::notify($memId, $message, 'task.status-changed', 'User ' . GAuth::user()->id);
                 }
             }
         });
@@ -71,14 +71,14 @@ class TodoController extends Controller {
             $message = '';
             $task = Task::findOrFail($taskId);
             if ($action == 'inc') {
-                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was increased by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was increased by " . self::userMarkup(GAuth::user()->id);
             } else if ($action == 'dec') {
-                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was decreased by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was decreased by " . self::userMarkup(GAuth::user()->id);
             }
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id']))
-                    Notification::notify($memId, $message, 'task.change-priority', 'User ' . GAuth::user()['id']);
+                if (intval($memId) != intval(GAuth::user()->id))
+                    Notification::notify($memId, $message, 'task.change-priority', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.members-added', function($payload) {
@@ -87,10 +87,10 @@ class TodoController extends Controller {
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were added to the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were added to the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.members-added', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id))
+                    Notification::notify($member, $message, 'task.members-added', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.assigned', function($payload) {
@@ -99,10 +99,10 @@ class TodoController extends Controller {
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = self::userMarkup(GAuth::user()['id']) . " assigned you to the task '" . self::taskMarkup($task->id);
+            $message = self::userMarkup(GAuth::user()->id) . " assigned you to the task '" . self::taskMarkup($task->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.assigned', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id))
+                    Notification::notify($member, $message, 'task.assigned', 'User ' . GAuth::user()->id);
             }
         });
 
@@ -112,10 +112,10 @@ class TodoController extends Controller {
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were removed from the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were removed from the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.members-removed', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id))
+                    Notification::notify($member, $message, 'task.members-removed', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.assignee-removed', function($payload) {
@@ -124,10 +124,10 @@ class TodoController extends Controller {
             $members = $payload['assigneeIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were unassigned the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were unassigned the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.assignee-removed', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id))
+                    Notification::notify($member, $message, 'task.assignee-removed', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.new-comment', function($payload) {
@@ -135,11 +135,11 @@ class TodoController extends Controller {
             $task = $payload['task'];
             $user = $payload['user'];
             $comment = $payload['comment'];
-            $message = self::userMarkup(GAuth::user()['id']) . " commented on the task '" . self::taskMarkup($task->id) . "'.";
+            $message = self::userMarkup(GAuth::user()->id) . " commented on the task '" . self::taskMarkup($task->id) . "'.";
             $members = $task->members();
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id'])) {
-                    Notification::notify($member, $message, 'task.new-comment', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    Notification::notify($member, $message, 'task.new-comment', 'User ' . GAuth::user()->id);
                 }
             }
         });

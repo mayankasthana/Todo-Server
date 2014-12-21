@@ -18,7 +18,6 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
-Route::get('/export/xml','ExportsController@test');
 Route::any('/upload/{taskId}/{userId}/', 'AttachmentsController@uploadHandler');
 Route::get('/sendemails', 'EmailController@sendDeferredEmails');
 Route::get('setup/database/migrate', function() {
@@ -97,7 +96,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     );
 
     Route::get('api/tasks', function() {
-        $userId = GAuth::user()['id'];
+        $userId = GAuth::user()->id;
         $tasks = User::associatedTasks($userId)->get();
         return $tasks;
     });
@@ -107,7 +106,7 @@ Route::group(array('before' => 'auth.basic'), function() {
         return Response::json($users);
     });
     Route::get('api/notifs', function() {
-        $userId = GAuth::user()['id'];
+        $userId = GAuth::user()->id;
         return Notification::where('to_user_id', $userId)
                         ->whereNull('seen_time')
                         ->orderBy('id', 'DESC')
@@ -137,7 +136,7 @@ Route::group(array('before' => 'auth.basic'), function() {
     });
 
     Route::post('api/task', function() {
-        $userId = GAuth::user()['id'];
+        $userId = GAuth::user()->id;
         $title = Input::get('title');
         $description = Input::get('description');
         $priority = Input::get('priority');
@@ -255,6 +254,8 @@ Route::group(array('before' => 'auth.basic'), function() {
             $att->delete();
         }
     });
+    Route::get('api/export/xml','ExportsController@xmlOut');
+        
 });
 
 Route::get('api/task/{taskId}/atts', function($taskId) {

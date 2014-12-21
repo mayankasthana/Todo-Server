@@ -42,7 +42,7 @@ class EmailController extends Controller {
             Email::deferSend($from, $toEmailId, $type, $subject, $body, $timeToSend);
         });
         Event::listen('user.logged-in', function($user) {
-            GAuth::user($user->toArray());
+            GAuth::user($user);
         });
         Event::listen('user.token-expired', function($userId) {
             
@@ -52,23 +52,14 @@ class EmailController extends Controller {
         });
         Event::listen('task.deleted', function($taskId) {
             //return;
-//email if required
             Log::debug('task.delete Event');
-            Log::debug('Trying to send mail');
             $task = Task::findOrFail($taskId);
-            //$message = "The task: '" . self::taskMarkup($task->id) . "' was removed by " . self::userMarkup(GAuth::user()['id']);
             $taskMembers = $task->members();
             $taskMembers = User::whereIn('id', $taskMembers)->get();
-            //from person
             $fromUser = GAuth::user();
-            //TODO replace hardcoded id with auth me
-            //$content = $fromUser['displayName'] . " deleted the task '" . $task->title . "'.";
-            $content = "The task: '" . $task->title . "' was removed by " . GAuth::user()['displayName'];
+            $content = "The task: '" . $task->title . "' was removed by " . GAuth::user()->displayName;
             foreach ($taskMembers as $mem) {
-                if (intval($mem->id) != intval(GAuth::user()['id'])) {
-                    /*        Mail::send('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content], function($message) use($mem) {
-                      $message->to($mem->email, 'Todo')->subject('Task Removed');
-                      }); */
+                if (intval($mem->id) != intval(GAuth::user()->id)) {
                     $view = View::make('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content]);
                     $body = $view->render();
                     Email::deferSend('sys', $mem->email, 'task.deleted', 'Task Removed', $body, null);
@@ -84,17 +75,25 @@ class EmailController extends Controller {
             $message = '';
             $task = Task::findOrFail($taskId);
             if ($newStatus == '1') {
-                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked done by " . self::userMarkup(GAuth::user()['id']);
+                $content = "The task: '" . $task->title . "' was marked completed by " . (GAuth::user()->displayName);
+                $subject = 'Task Completed';
             } else if ($newStatus == '0') {
-                $message = "The task: '" . self::taskMarkup($task->id) . "' was marked not done by " . self::userMarkup(GAuth::user()['id']);
+                $content = "The task: '" . $task->title . "' was marked incomplete by " . (GAuth::user()->displayName);
+                $subject = 'Task Marked Incomplete';
             }
             $taskMembers = $task->members();
-            foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id'])) {
-                    Notification::notify($memId, $message, 'task.status-changed', 'User ' . GAuth::user()['id']);
+            $taskMembers = User::whereIn('id', $taskMembers)->get();
+
+            $fromUser = GAuth::user();
+            foreach ($taskMembers as $mem) {
+                $view = View::make('emails.common', ['task' => $task, 'user' => $mem, 'content' => $content]);
+                $body = $view->render();
+                if (intval($mem->id) != intval(GAuth::user()->id)) {
+                    Email::deferSend($fromUser->id, $mem->email, 'task.status-changed', $subject, $body, null);
                 }
             }
         });
+
         Event::listen('task.change-priority', function($payload) {
 //Notify every task member
             $taskId = $payload['taskId'];
@@ -102,26 +101,27 @@ class EmailController extends Controller {
             $message = '';
             $task = Task::findOrFail($taskId);
             if ($action == 'inc') {
-                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was increased by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was increased by " . self::userMarkup(GAuth::user()->id);
             } else if ($action == 'dec') {
-                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was decreased by " . self::userMarkup(GAuth::user()['id']);
+                $message = "The priority of task: '" . self::taskMarkup($task->id) . "' was decreased by " . self::userMarkup(GAuth::user()->id);
             }
             $taskMembers = $task->members();
             foreach ($taskMembers as $memId) {
-                if (intval($memId) != intval(GAuth::user()['id']))
-                    Notification::notify($memId, $message, 'task.change-priority', 'User ' . GAuth::user()['id']);
+                if (intval($memId) != intval(GAuth::user()->id))
+                    Notification::notify($memId, $message, 'task.change-priority', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.members-added', function($payload) {
-//Notify the newly added members                
+            //Notify the newly added members                
             $taskId = $payload['taskId'];
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were added to the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were added to the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.members-added', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    //                    Notification::notify($member, $message, 'task.members-added', 'User ' . GAuth::user()->id);
+                }
             }
         });
         Event::listen('task.assigned', function($payload) {
@@ -130,10 +130,11 @@ class EmailController extends Controller {
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = self::userMarkup(GAuth::user()['id']) . " assigned you to the task '" . self::taskMarkup($task->id);
+            $message = self::userMarkup(GAuth::user()->id) . " assigned you to the task '" . self::taskMarkup($task->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.assigned', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    //        Notification::notify($member, $message, 'task.assigned', 'User ' . GAuth::user()->id);
+                }
             }
         });
 
@@ -143,10 +144,12 @@ class EmailController extends Controller {
             $members = $payload['memberIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were removed from the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were removed from the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.members-removed', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    
+                }
+                //       Notification::notify($member, $message, 'task.members-removed', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.assignee-removed', function($payload) {
@@ -155,10 +158,12 @@ class EmailController extends Controller {
             $members = $payload['assigneeIds'];
 
             $task = Task::findOrFail($taskId);
-            $message = "You were unassigned the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()['id']);
+            $message = "You were unassigned the task '" . self::taskMarkup($task->id) . "' by " . self::userMarkup(GAuth::user()->id);
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id']))
-                    Notification::notify($member, $message, 'task.assignee-removed', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    
+                }
+                //       Notification::notify($member, $message, 'task.assignee-removed', 'User ' . GAuth::user()->id);
             }
         });
         Event::listen('task.new-comment', function($payload) {
@@ -166,11 +171,11 @@ class EmailController extends Controller {
             $task = $payload['task'];
             $user = $payload['user'];
             $comment = $payload['comment'];
-            $message = self::userMarkup(GAuth::user()['id']) . " commented on the task '" . self::taskMarkup($task->id) . "'.";
+            $message = self::userMarkup(GAuth::user()->id) . " commented on the task '" . self::taskMarkup($task->id) . "'.";
             $members = $task->members();
             foreach ($members as $member) {
-                if (intval($member) != intval(GAuth::user()['id'])) {
-                    Notification::notify($member, $message, 'task.new-comment', 'User ' . GAuth::user()['id']);
+                if (intval($member) != intval(GAuth::user()->id)) {
+                    //      Notification::notify($member, $message, 'task.new-comment', 'User ' . GAuth::user()->id);
                 }
             }
         });

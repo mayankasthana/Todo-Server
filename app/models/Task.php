@@ -23,11 +23,11 @@ class Task extends Eloquent {
 
     public function comments() {
         //    return Comment::where('task_id', $this->id)->get(array('id', 'text', 'task_id', 'user_id', 'created_at'));
-        return $this->hasMany('comment');
+        return $this->hasMany('Comment');
     }
 
     public function attachments() {
-        return $this->hasMany('attachment');
+        return $this->hasMany('Attachment');
     }
 
     public function users() {

@@ -44,6 +44,7 @@ class User extends Eloquent {
         $newUser->ouid = $user->id;
         $newUser->displayName = $user->displayName;
         $newUser->email = $user->emails[0]->value;
+        $newUser->profilePic =$user->getImage()->getUrl();
         $newUser->save();
     }
 

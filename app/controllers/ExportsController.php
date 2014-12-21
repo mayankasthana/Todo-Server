@@ -2,8 +2,8 @@
 
 class ExportsController extends Controller {
 
-    public static function test() {
-        $user = User::findOrFail(1);
+    public static function xmlOut() {
+        $user = GAuth::user();
         $tasks = $user->myTasks()
                 ->with('creator')
                 ->with('users')
@@ -49,7 +49,9 @@ class ExportsController extends Controller {
                 $xml = new SimpleXMLElement("<Tasks></Tasks>");
                 //array_walk_recursive($xmlArr, array ($xml, 'addChild'));
                 ExportsController::array_to_xml($xmlArr, $xml);
-                return Response::make($xml->asXML(), '200')->header('Content-Type', 'text/xml');
+                return Response::make($xml->asXML(), '200')
+                        ->header('Content-Type', 'text/xml')
+                        ->header('Content-Disposition', 'attachment; filename="exported-tasks.xml');
             }
 
             static function array_to_xml($array, &$xml) {

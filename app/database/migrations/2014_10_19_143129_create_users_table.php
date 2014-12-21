@@ -14,6 +14,7 @@ class CreateUsersTable extends Migration {
             $table->string('ouid', 50);
             $table->string('email', 100);
             //$table->string('register_ip', 15);
+            $table->string('profilePic', 255);
             $table->string('last_token', 100)->nullable();
             $table->string('access_token', 100)->nullable();
             $table->integer('access_token_time')->nullable();
