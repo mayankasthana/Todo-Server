@@ -7,7 +7,8 @@
 		"laravel/framework": "4.2.*",
                 "google/apiclient": "dev-master",
 		"barryvdh/laravel-debugbar": "~1.7",
-                "flowjs/flow-php-server":"*"
+                "flowjs/flow-php-server":"*",
+                "tecnick.com/tcpdf":"6.0.*"
 	},
 	"autoload": {
 		"classmap": [

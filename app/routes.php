@@ -18,6 +18,7 @@ Route::get('/', function() {
 
     return View::make('hello');
 });
+Route::any('/pdf', 'ExportsController@pdfTest');
 Route::any('/upload/{taskId}/{userId}/', 'AttachmentsController@uploadHandler');
 Route::get('/sendemails', 'EmailController@sendDeferredEmails');
 Route::get('setup/database/migrate', function() {
